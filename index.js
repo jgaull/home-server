@@ -50,7 +50,7 @@ function TVIsOn(info) {
 
 const client = new Client(config.tvIp)
 poll(client, tvIsOn => {
-
+    
     Promise.resolve(device).then(device => {
         
         const isOn = outletIsOn(device)
@@ -63,7 +63,7 @@ poll(client, tvIsOn => {
             return etekcity.turnOn(device.id)
         }
     }).catch(error => {
-        console.log('error turning outlet', isOn ? 'on:' : 'off:', error.stack)
+        console.log(`error turning outlet ${isOn ? 'on' : 'off'}: ${error.stack}`)
     })
 })
 
