@@ -40,6 +40,7 @@ function poll(client, callback) {
 
     }).catch(error => {
         console.log(error.stack)
+        poll(client, callback)
     })
 }
 
@@ -62,6 +63,8 @@ poll(client, tvIsOn => {
             console.log(`turning device ${device.name} on`)
             return etekcity.turnOn(device.id)
         }
+    }).catch(error => {
+        console.log('error turning outlet', isOn ? 'on:' : 'off:', error.stack)
     })
 })
 
