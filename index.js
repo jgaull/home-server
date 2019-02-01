@@ -48,10 +48,9 @@ function TVIsOn(info) {
     return info.powerMode === 'PowerOn'
 }
 
-const client = new Client('http://192.168.1.181:8060')
+const client = new Client(config.tvIp)
 poll(client, tvIsOn => {
 
-    console.log('tvStateChange:', tvIsOn)
     Promise.resolve(device).then(device => {
         
         const isOn = outletIsOn(device)
