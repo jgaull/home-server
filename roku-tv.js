@@ -3,9 +3,24 @@
 const delay = require('delay')
 const { Client, keys } = require('roku-client')
 const EventEmitter = require('events')
+const _ = require('lodash')
 
 const pollFunctions = [
     'info'
+]
+
+const events = [
+    {
+        name: 'power-on',
+        comparator: (previous, next) => {
+            return _.get(previous, 'info.powerMode') !== 'PowerOn' && _.get(next, 'info.powerMode') === 'PowerOn'
+        }
+    }, {
+        name: 'power-off',
+        comparator: (previous, next) => {
+            return _.get(previous, 'info.powerMode') === 'PowerOn' && _.get(next, 'info.powerMode') !== 'PowerOn'
+        }
+    }
 ]
 
 class RokuTV extends EventEmitter {
@@ -14,8 +29,8 @@ class RokuTV extends EventEmitter {
 
         super()
 
-        this.lastTime = {}
-
+        this.state = {}
+        
         if (typeof params === 'string') {
             this.client = new Client(params)
         }
@@ -25,41 +40,48 @@ class RokuTV extends EventEmitter {
         else {
             this.client = Client.discover()
         }
+
+        this.poll()
     }
 
-    async poll(callback) {
+    async poll() {
 
         try {
             const tv = await this.client
 
-            const thisTime = {}
-            pollFunctions.forEach(name => {
-                thisTime[name] = await tv[name]()
-            })
-
-            const info = await tv.info()
-            const isOn = this.TVIsOn(info)
-
-            if (isOn != this.wasOn) {
-                this.wasOn = isOn
-                callback(isOn)
-                //this.emit('event')
+            const newState = {}
+            for (let i = 0; i < pollFunctions.length; i++) {
+                const functionName = pollFunctions[i]
+                newState[functionName] = await tv[functionName]()
             }
 
-            const milliseconds = isOn ? 5000 : 1000
-            await delay(milliseconds)
+            const toEmit = []
+            events.forEach(event => {
+                if (event.comparator(this.state, newState)) {
+                    toEmit.push(event)
+                }
+            })
 
-            this.poll(callback)
+            this.state = newState
+
+            toEmit.forEach(event => {
+                this.emit(event.name)
+            })
         }
         catch (error) {
             console.log(error.stack)
-            this.poll(callback)
+            this.poll()
         }
+
+        const milliseconds = this.isOn() ? 5000 : 1000
+        await delay(milliseconds)
+
+        this.poll()
 
     }
 
-    TVIsOn(info) {
-        return info.powerMode === 'PowerOn'
+    isOn() {
+        return _.get(this.state, 'info.powerMode') === 'PowerOn'
     }
 }
 
