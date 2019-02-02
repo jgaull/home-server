@@ -4,14 +4,17 @@ const delay = require('delay')
 const { Client, keys } = require('roku-client')
 const EventEmitter = require('events')
 
-this.client
-this.wasOn
+const pollFunctions = [
+    'info'
+]
 
 class RokuTV extends EventEmitter {
 
     constructor(params) {
 
         super()
+
+        this.lastTime = {}
 
         if (typeof params === 'string') {
             this.client = new Client(params)
@@ -28,6 +31,12 @@ class RokuTV extends EventEmitter {
 
         try {
             const tv = await this.client
+
+            const thisTime = {}
+            pollFunctions.forEach(name => {
+                thisTime[name] = await tv[name]()
+            })
+
             const info = await tv.info()
             const isOn = this.TVIsOn(info)
 
