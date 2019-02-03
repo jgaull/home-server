@@ -1,6 +1,6 @@
 {
   "name": "home-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Automations of questionable benefit",
   "main": "index.js",
   "scripts": {
