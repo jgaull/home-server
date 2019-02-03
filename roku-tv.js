@@ -6,6 +6,7 @@ const EventEmitter = require('events')
 const _ = require('lodash')
 const ipRegex = require('ip-regex')
 
+const pollFrequency = 1 //seconds
 const pollFunctions = [
     'info'
 ]
@@ -107,8 +108,7 @@ class RokuTV extends EventEmitter {
             this.poll()
         }
 
-        const milliseconds = this.isOn() ? 5000 : 1000
-        await delay(milliseconds)
+        await delay(pollFrequency * 1000)
 
         this.poll()
 
