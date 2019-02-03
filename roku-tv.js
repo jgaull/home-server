@@ -27,29 +27,39 @@ const events = [
 
 class RokuTV extends EventEmitter {
 
-    constructor(params) {
+    constructor(connectionString) {
 
         super()
 
         this.state = {}
+        this.connectionString = connectionString
         
-        if (typeof params === 'string') {
+        this.connect()
+    }
 
-            const isIp = ipRegex({ exact: true }).test(params)
+    connect() {
+
+        const connectionString = this.connectionString
+        
+        let client
+        if (typeof connectionString === 'string') {
+
+            const isIp = ipRegex({ exact: true }).test(connectionString)
             if (isIp) {
-                this.client = new Client(params)
+                client = new Client(connectionString)
             }
             else {
-                this.client = this.discoverByName(params)
+                client = this.discoverByName(connectionString)
             }
         }
-        else if (typeof params.ip === 'string') {
-            this.client = new Client(params.ip)
+        else if (typeof connectionString.ip === 'string') {
+            client = new Client(connectionString.ip)
         }
         else {
-            this.client = Client.discover()
+            client = Client.discover()
         }
 
+        this.client = client
         this.poll()
     }
 
@@ -78,11 +88,22 @@ class RokuTV extends EventEmitter {
 
     async poll() {
 
+        let tv
         try {
-            const tv = await this.client
-            if (tv === undefined) {
-                throw new Error('No TV found on network')
-            }
+            tv = await this.client
+        }
+        catch(error) {
+            console.log('error connecting to TV:', error.stack)
+        }
+
+        if (tv === undefined) {
+            console.log('No TV found on network')
+            await delay(pollFrequency * 1000)
+            this.connect()
+            return
+        }
+
+        try{
 
             const newState = {}
             for (let i = 0; i < pollFunctions.length; i++) {
@@ -112,10 +133,6 @@ class RokuTV extends EventEmitter {
 
         this.poll()
 
-    }
-
-    isOn() {
-        return _.get(this.state, 'info.powerMode') === 'PowerOn'
     }
 }
 
