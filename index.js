@@ -19,7 +19,7 @@ let device = etekcity.login(config.username, config.password).then(() => {
     return device
 })
 
-const tv = new RokuTV(config.tvIp)
+const tv = new RokuTV(config.tvName)
 
 tv.on('power-on', () => {
     Promise.resolve(device).then(device => {
