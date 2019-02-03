@@ -67,19 +67,17 @@ class RokuTV extends EventEmitter {
 
         let clients = await Client.discoverAll()
 
-        const promises = clients.map(client => {
+        const promises = clients.map(async client => {
 
-            return client.info().then(info => {
-
-                return {
-                    info: _.cloneDeep(info),
-                    client
-                }
-            })
+            const info = await client.info()
+            return {
+                info: _.cloneDeep(info),
+                client
+            }
         })
 
         const tvs = await Promise.all(promises)
-        const tv = tvs.find((tv) => {
+        const tv = tvs.find(tv => {
             return tv.info.userDeviceName === name
         })
 
