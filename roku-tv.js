@@ -60,6 +60,7 @@ class RokuTV extends EventEmitter {
         }
 
         this.client = client
+        console.log('connected to TV', this.connectionString)
         this.poll()
     }
 
