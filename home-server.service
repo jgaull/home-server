@@ -1,0 +1,11 @@
+[Unit]
+Description=Home Server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Restart=always
+ExecStart=/home/hal/Code/home-server/start.sh
+
+[Install]
+WantedBy=default.target
